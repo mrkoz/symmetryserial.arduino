@@ -110,8 +110,8 @@ class SymmetrySerial
     void setSendDataCounterTo(uint8_t value);
 
     /* Get data from receive packet */
-    void getByteToSend(uint8_t data);
-    void getWordToSend(uint16_t data);
+    void getByteFromReceive(uint8_t data);
+    void getWordFromReceive(uint16_t data);
     void resetReceiveDataCounter();
     void setReceiveDataCounterTo(uint8_t value);
 
