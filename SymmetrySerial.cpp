@@ -95,6 +95,9 @@ void SymmetrySerial::poll() {
           else {
             //this is the data length
             messageReceive.length = recChar;
+
+            //this is also where the counterReceive is reset
+            counterReceive = 0x00;
           }
           break;
         case S_FEATURE:
@@ -153,6 +156,7 @@ void SymmetrySerial::purgeMessageSend() {
   messageSend.length = 0x00;
   messageSend.feature = 0x00;
   messageSend.checksum = 0x00;
+  counterSend  = 0x00;
   for (uint8_t i = 0; i < SERIAL_MESSAGE_BUFFER_SIZE; i++) {
     setSendDataAt(i, 0xff);
   }
@@ -292,3 +296,41 @@ uint8_t SymmetrySerial::getSendDataAt(uint8_t position) {
 void SymmetrySerial::setSendDataAt(uint8_t position, uint8_t value) {
   messageSend.dataBuffer[position] = value;
 }
+
+/* Add data helpers for sendpacket */
+void addByteToSend(uint8_t data) {
+  setSendDataAt(counterSend++, data);
+  messageSend.length = counterSend;
+}
+
+void addWordToSend(uint16_t data) {
+  setSendDataAt(counterSend++, highByte(data));
+  setSendDataAt(counterSend++, lowByte(data));
+  messageSend.length = counterSend;
+}
+
+void resetSendDataCounter() {
+  setSendDataCounterTo(0);
+}
+
+void setSendDataCounterTo(uint8_t value) {
+  counterSend = value;
+}
+
+/* Get data from receive packet */
+uint8_t getByteFromReceive() {
+  return getReceiveDataAt(counterReceive++);
+}
+
+uint16_t getWordFromReceive() {
+  return uint16_t ((getReceiveDataAt(counterReceive++) * 0xFF) + (getReceiveDataAt(counterReceive++)));
+}
+
+void resetReceiveDataCounter() {
+  setReceiveDataCounterTo(0);
+}
+
+void setReceiveDataCounterTo(uint8_t value) {
+  counterReceive = value;
+}
+

@@ -58,6 +58,9 @@ class SymmetrySerial
     unsigned long lastCycle = 0;
     bool heartbeatDead = false;
 
+    uint8_t counterSend = 0;
+    uint8_t counterReceive = 0;
+
     /***** Public functions *****/
     /* Constructor with data and status callback */
     SymmetrySerial(HardwareSerial port, int baudRate, void (*callback)(void), void (*statusCallback)(uint8_t message));
@@ -99,6 +102,20 @@ class SymmetrySerial
     uint8_t getSendDataAt(uint8_t position);
     /* set the value of the send dataset at position to value */
     void setSendDataAt(uint8_t position, uint8_t value);
+
+    /* Add data helpers for sendpacket */
+    void addByteToSend(uint8_t data);
+    void addWordToSend(uint16_t data);
+    void resetSendDataCounter();
+    void setSendDataCounterTo(uint8_t value);
+
+    /* Get data from receive packet */
+    void getByteToSend(uint8_t data);
+    void getWordToSend(uint16_t data);
+    void resetReceiveDataCounter();
+    void setReceiveDataCounterTo(uint8_t value);
+
+
 
   private:
     /***** Private Members *****/
