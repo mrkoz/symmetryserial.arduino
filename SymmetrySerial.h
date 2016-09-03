@@ -103,6 +103,11 @@ class SymmetrySerial
     /* set the value of the send dataset at position to value */
     void setSendDataAt(uint8_t position, uint8_t value);
 
+    /* receive buffer purge */
+    void purgeMessageReceive();
+    /* send buffer purge */
+    void purgeMessageSend();
+
     /* Add data helpers for sendpacket */
     void addByteToSend(uint8_t data);
     void addWordToSend(uint16_t data);
@@ -110,12 +115,12 @@ class SymmetrySerial
     void setSendDataCounterTo(uint8_t value);
 
     /* Get data from receive packet */
-    void getByteFromReceive(uint8_t data);
-    void getWordFromReceive(uint16_t data);
+    uint8_t getByteFromReceive();
+    uint16_t getWordFromReceive();
     void resetReceiveDataCounter();
     void setReceiveDataCounterTo(uint8_t value);
 
-
+    bool is_alive();
 
   private:
     /***** Private Members *****/
@@ -141,10 +146,6 @@ class SymmetrySerial
     void dataReceived();
     /* checks the heartbeat timeout and fires off a HELO if needed */
     void checkheartBeat();
-    /* receive buffer purge */
-    void purgeMessageReceive();
-    /* send buffer purge */
-    void purgeMessageSend();
     /* checksum calculation - receive */
     uint8_t getRecieveBufferChecksum();
     /* checksum calculation - send */

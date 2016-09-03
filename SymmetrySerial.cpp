@@ -249,6 +249,10 @@ void SymmetrySerial::sendMessageSingle(uint8_t feature) {
   sendMessageSingle(feature, 0);
 }
 
+bool SymmetrySerial::is_alive() {
+  return (millis() - lastMessage < _heartBeat);
+}
+
 
 
 /**************************************************************************************************
@@ -278,13 +282,13 @@ void SymmetrySerial::setReceiveDataAt(uint8_t position, uint8_t value) {
 
 /* checksum calculation - send */
 uint8_t SymmetrySerial::getSendBufferChecksum() {
-    uint8_t outcome = messageSend.length + messageSend.feature;
-    if (messageSend.length > 0) {
-      for (uint8_t i =0; i < messageSend.length; i++) {
-        outcome += messageSend.dataBuffer[i];
-      }
+  uint8_t outcome = messageSend.length + messageSend.feature;
+  if (messageSend.length > 0) {
+    for (uint8_t i =0; i < messageSend.length; i++) {
+      outcome += messageSend.dataBuffer[i];
     }
-    return outcome;
+  }
+  return outcome;
 }
 
 /* get the value of the send dataset at position */
@@ -298,39 +302,39 @@ void SymmetrySerial::setSendDataAt(uint8_t position, uint8_t value) {
 }
 
 /* Add data helpers for sendpacket */
-void addByteToSend(uint8_t data) {
+void SymmetrySerial::addByteToSend(uint8_t data) {
   setSendDataAt(counterSend++, data);
   messageSend.length = counterSend;
 }
 
-void addWordToSend(uint16_t data) {
+void SymmetrySerial::addWordToSend(uint16_t data) {
   setSendDataAt(counterSend++, highByte(data));
   setSendDataAt(counterSend++, lowByte(data));
   messageSend.length = counterSend;
 }
 
-void resetSendDataCounter() {
+void SymmetrySerial::resetSendDataCounter() {
   setSendDataCounterTo(0);
 }
 
-void setSendDataCounterTo(uint8_t value) {
+void SymmetrySerial::setSendDataCounterTo(uint8_t value) {
   counterSend = value;
 }
 
 /* Get data from receive packet */
-uint8_t getByteFromReceive() {
+uint8_t SymmetrySerial::getByteFromReceive() {
   return getReceiveDataAt(counterReceive++);
 }
 
-uint16_t getWordFromReceive() {
-  return uint16_t ((getReceiveDataAt(counterReceive++) * 0xFF) + (getReceiveDataAt(counterReceive++)));
+uint16_t SymmetrySerial::getWordFromReceive() {
+  return getReceiveDataAt(counterReceive++)  << 8 | getReceiveDataAt(counterReceive++);
 }
 
-void resetReceiveDataCounter() {
+void SymmetrySerial::resetReceiveDataCounter() {
   setReceiveDataCounterTo(0);
 }
 
-void setReceiveDataCounterTo(uint8_t value) {
+void SymmetrySerial::setReceiveDataCounterTo(uint8_t value) {
   counterReceive = value;
 }
 
