@@ -9,18 +9,19 @@
 /***** Constructors *****/
 
 /* Constructor with data and status callback */
-SymmetrySerial::SymmetrySerial(HardwareSerial port, int baudRate, void (*callback)(void), void (*statusCallback)(uint8_t message)){
+SymmetrySerial::SymmetrySerial(HardwareSerial *port, int baudRate){
   _port = port;
   _baudRate = baudRate;
-  _messageCallback = callback;
-  _statusCallback = statusCallback;
 }
 
 /* Constructor with heartbeat and data and status callback */
-SymmetrySerial::SymmetrySerial(HardwareSerial port, int baudRate, unsigned long heartBeat, void (*callback)(void), void (*statusCallback)(uint8_t message)){
+SymmetrySerial::SymmetrySerial(HardwareSerial *port, int baudRate, unsigned long heartBeat){
   _port = port;
   _baudRate = baudRate;
   _heartBeat = heartBeat;
+}
+
+void SymmetrySerial::setCallBacks(void (*callback)(void), void (*statusCallback)(uint8_t message)) {
   _messageCallback = callback;
   _statusCallback = statusCallback;
 }
@@ -29,14 +30,14 @@ SymmetrySerial::SymmetrySerial(HardwareSerial port, int baudRate, unsigned long 
 
 /* Stop serial port connectivity */
 void SymmetrySerial::connect() {
-    _port.begin(_baudRate);
+    _port->begin(_baudRate);
     purgeMessageReceive();
     configured = true;
 }
 
 /* Stop serial port connectivity */
 void SymmetrySerial::disconnect() {
-    _port.end();
+    _port->end();
     configured = false;
 }
 
@@ -68,9 +69,9 @@ void SymmetrySerial::checkheartBeat() {
 /* poll to see if there's new data and process while available */
 void SymmetrySerial::poll() {
   checkheartBeat();
-  while (configured == true && _port.available() > 0) {
+  while (configured == true && _port->available() > 0) {
     dataReceived();
-    recChar = _port.read();
+    recChar = _port->read();
     if(receiving == 0) {              // if the receiving is set to 0 then we're not currently receiving a message
       if(recChar == MSG_START) {       // check if the recChar is the start char
         receiving = 1;                // starting message
@@ -194,8 +195,8 @@ void SymmetrySerial::statusMessageReceived(uint8_t message) {
 /* send a status message */
 void SymmetrySerial::sendSatusMessage(uint8_t command) {
   if (!configured) return;
-  _port.write(0xff);
-  _port.write(command);
+  _port->write(0xff);
+  _port->write(command);
 }
 
 /* pre-canned status messages - HELO */
@@ -224,13 +225,13 @@ void SymmetrySerial::sendMessage() {
 
   messageSend.checksum = 256 - (getSendBufferChecksum() % 256);
 
-  _port.write(0xFF);
-  _port.write(messageSend.length);
-  _port.write(messageSend.feature);
-  _port.write(messageSend.checksum);
+  _port->write(0xFF);
+  _port->write(messageSend.length);
+  _port->write(messageSend.feature);
+  _port->write(messageSend.checksum);
 
   for (uint8_t i = 0; i < messageSend.length; i++) {
-    _port.write(messageSend.dataBuffer[i]);
+    _port->write(messageSend.dataBuffer[i]);
   }
 
   purgeMessageSend();

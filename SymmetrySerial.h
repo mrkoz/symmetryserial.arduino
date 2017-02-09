@@ -63,9 +63,12 @@ class SymmetrySerial
 
     /***** Public functions *****/
     /* Constructor with data and status callback */
-    SymmetrySerial(HardwareSerial port, int baudRate, void (*callback)(void), void (*statusCallback)(uint8_t message));
+    SymmetrySerial(HardwareSerial *port, int baudRate);
     /* Constructor with heartbeat and data and status callback */
-    SymmetrySerial(HardwareSerial port, int baudRate, unsigned long heartBeat, void (*callback)(void), void (*statusCallback)(uint8_t message));
+    SymmetrySerial(HardwareSerial *port, int baudRate, unsigned long heartBeat);
+
+    void setCallBacks(void (*callback)(void), void (*statusCallback)(uint8_t message));
+
     /* Stop serial port connectivity */
     void connect();
     /* Stop serial port connectivity */
@@ -124,8 +127,7 @@ class SymmetrySerial
 
   private:
     /***** Private Members *****/
-    HardwareSerial _port;
-    HardwareSerial debugPort;
+    HardwareSerial * _port;
 
     unsigned long _baudRate;
     unsigned long _heartBeat;
