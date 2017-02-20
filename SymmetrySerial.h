@@ -15,7 +15,7 @@
 #define SERIAL_MESSAGE_BUFFER_SIZE SERIAL_BUFFER_SIZE - SERIAL_MESSAGE_SIZE - 1 // takign into account the start bit
 #define S_SIZE_OR_STATUS 0
 #define S_FEATURE 1
-#define S_CHECKSUM 3
+#define S_CHECKSUM 2
 #define MSG_START 0xFF
 
 /* status commands for basic */
@@ -58,11 +58,18 @@ class SymmetrySerial
     unsigned long lastCycle = 0;
     bool heartbeatDead = false;
 
+    uint8_t counterSend = 0;
+    uint8_t counterReceive = 0;
+
     /***** Public functions *****/
-    /* Constructor with data and status callback */
-    SymmetrySerial(HardwareSerial port, int baudRate, void (*callback)(void), void (*statusCallback)(uint8_t message));
-    /* Constructor with heartbeat and data and status callback */
-    SymmetrySerial(HardwareSerial port, int baudRate, unsigned long heartBeat, void (*callback)(void), void (*statusCallback)(uint8_t message));
+    /* Constructor */
+    SymmetrySerial(HardwareSerial *port, int baudRate);
+    /* Constructor with heartbeat */
+    SymmetrySerial(HardwareSerial *port, int baudRate, unsigned long heartBeat);
+    /* set callbacks */
+    void setCallBacks(void (*callback)(void), void (*statusCallback)(uint8_t message));
+    
+    /***** Port connect/disconnect *****/
     /* Stop serial port connectivity */
     void connect();
     /* Stop serial port connectivity */
@@ -91,6 +98,16 @@ class SymmetrySerial
     void sendMessageSingle(uint8_t feature, uint8_t value);
     /* quick send for single feature trigger */
     void sendMessageSingle(uint8_t feature);
+    /* set the feature type for the send packet */
+    void setSendFeature(uint8_t feature);
+    /* get the feature set type from the received packet */
+    uint8_t getReceiveFeatureSet();
+    /* get the feature type from the received packet */
+    uint8_t getReceiveFeature();
+    /* get the data length of the received packet */
+    uint8_t getReceiveLength();
+    /* get the checksum of the received packet */
+    uint8_t getReceiveChecksum();
     /* get the value of the receive dataset at position */
     uint8_t getReceiveDataAt(uint8_t position);
     /* set the value of the receive dataset at position to value */
@@ -100,10 +117,28 @@ class SymmetrySerial
     /* set the value of the send dataset at position to value */
     void setSendDataAt(uint8_t position, uint8_t value);
 
+    /* receive buffer purge */
+    void purgeMessageReceive();
+    /* send buffer purge */
+    void purgeMessageSend();
+
+    /* Add data helpers for sendpacket */
+    void addByteToSend(uint8_t data);
+    void addWordToSend(uint16_t data);
+    void resetSendDataCounter();
+    void setSendDataCounterTo(uint8_t value);
+
+    /* Get data from receive packet */
+    uint8_t getByteFromReceive();
+    uint16_t getWordFromReceive();
+    void resetReceiveDataCounter();
+    void setReceiveDataCounterTo(uint8_t value);
+
+    bool is_alive();
+
   private:
     /***** Private Members *****/
-    HardwareSerial _port;
-    HardwareSerial debugPort;
+    HardwareSerial * _port;
 
     unsigned long _baudRate;
     unsigned long _heartBeat;
@@ -124,10 +159,6 @@ class SymmetrySerial
     void dataReceived();
     /* checks the heartbeat timeout and fires off a HELO if needed */
     void checkheartBeat();
-    /* receive buffer purge */
-    void purgeMessageReceive();
-    /* send buffer purge */
-    void purgeMessageSend();
     /* checksum calculation - receive */
     uint8_t getRecieveBufferChecksum();
     /* checksum calculation - send */

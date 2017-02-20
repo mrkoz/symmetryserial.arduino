@@ -6,42 +6,41 @@
 #include "Arduino.h"
 #include "SymmetrySerial.h"
 
-/***** Constructors *****/
-
-/* Constructor with data and status callback */
-SymmetrySerial::SymmetrySerial(HardwareSerial port, int baudRate, void (*callback)(void), void (*statusCallback)(uint8_t message)){
+/***** Constructors and configuiration *****/
+/* Constructor */
+SymmetrySerial::SymmetrySerial(HardwareSerial *port, int baudRate) {
   _port = port;
   _baudRate = baudRate;
-  _messageCallback = callback;
-  _statusCallback = statusCallback;
 }
 
-/* Constructor with heartbeat and data and status callback */
-SymmetrySerial::SymmetrySerial(HardwareSerial port, int baudRate, unsigned long heartBeat, void (*callback)(void), void (*statusCallback)(uint8_t message)){
+/* Constructor with heartbeat */
+SymmetrySerial::SymmetrySerial(HardwareSerial *port, int baudRate, unsigned long heartBeat) {
   _port = port;
   _baudRate = baudRate;
   _heartBeat = heartBeat;
+}
+
+/* set callbacks */
+void SymmetrySerial::setCallBacks(void (*callback)(void), void (*statusCallback)(uint8_t message)) {
   _messageCallback = callback;
   _statusCallback = statusCallback;
 }
 
 /***** Port connect/disconnect *****/
-
 /* Stop serial port connectivity */
 void SymmetrySerial::connect() {
-    _port.begin(_baudRate);
+    _port->begin(_baudRate);
     purgeMessageReceive();
     configured = true;
 }
 
 /* Stop serial port connectivity */
 void SymmetrySerial::disconnect() {
-    _port.end();
+    _port->end();
     configured = false;
 }
 
 /***** State and heartbeat timer functions *****/
-
 /* updates last message and last heartbeat on data received */
 void SymmetrySerial::dataReceived() {
   lastMessage = millis();
@@ -64,13 +63,12 @@ void SymmetrySerial::checkheartBeat() {
 
 
 /***** data and message methods *****/
-
 /* poll to see if there's new data and process while available */
 void SymmetrySerial::poll() {
   checkheartBeat();
-  while (configured == true && _port.available() > 0) {
+  while (configured == true && _port->available() > 0) {
     dataReceived();
-    recChar = _port.read();
+    recChar = _port->read() & 0xFF;
     if(receiving == 0) {              // if the receiving is set to 0 then we're not currently receiving a message
       if(recChar == MSG_START) {       // check if the recChar is the start char
         receiving = 1;                // starting message
@@ -95,6 +93,9 @@ void SymmetrySerial::poll() {
           else {
             //this is the data length
             messageReceive.length = recChar;
+
+            //this is also where the counterReceive is reset
+            counterReceive = 0x00;
           }
           break;
         case S_FEATURE:
@@ -113,7 +114,7 @@ void SymmetrySerial::poll() {
           break;
       }
 
-      if(receiveCount == messageReceive.length + SERIAL_MESSAGE_SIZE) {
+      if(receiveCount == messageReceive.length + SERIAL_MESSAGE_SIZE - 1) {
         // this was the last packet of data
         if(receiveChecksum == 0) {  // perform checksum and if
           sendStatusACK();
@@ -153,6 +154,7 @@ void SymmetrySerial::purgeMessageSend() {
   messageSend.length = 0x00;
   messageSend.feature = 0x00;
   messageSend.checksum = 0x00;
+  counterSend  = 0x00;
   for (uint8_t i = 0; i < SERIAL_MESSAGE_BUFFER_SIZE; i++) {
     setSendDataAt(i, 0xff);
   }
@@ -190,8 +192,8 @@ void SymmetrySerial::statusMessageReceived(uint8_t message) {
 /* send a status message */
 void SymmetrySerial::sendSatusMessage(uint8_t command) {
   if (!configured) return;
-  _port.write(0xff);
-  _port.write(command);
+  _port->write(0xff);
+  _port->write(command);
 }
 
 /* pre-canned status messages - HELO */
@@ -220,13 +222,13 @@ void SymmetrySerial::sendMessage() {
 
   messageSend.checksum = 256 - (getSendBufferChecksum() % 256);
 
-  _port.write(0xFF);
-  _port.write(messageSend.length);
-  _port.write(messageSend.feature);
-  _port.write(messageSend.checksum);
+  _port->write(0xFF);
+  _port->write(messageSend.length & 0xFF);
+  _port->write(messageSend.feature & 0xFF);
+  _port->write(messageSend.checksum & 0xFF);
 
   for (uint8_t i = 0; i < messageSend.length; i++) {
-    _port.write(messageSend.dataBuffer[i]);
+    _port->write(messageSend.dataBuffer[i] & 0xFF);
   }
 
   purgeMessageSend();
@@ -245,6 +247,10 @@ void SymmetrySerial::sendMessageSingle(uint8_t feature) {
   sendMessageSingle(feature, 0);
 }
 
+bool SymmetrySerial::is_alive() {
+  return (millis() - lastMessage < _heartBeat);
+}
+
 
 
 /**************************************************************************************************
@@ -261,6 +267,32 @@ uint8_t SymmetrySerial::getRecieveBufferChecksum() {
   }
   return outcome;
 }
+/* set the feature type for the send packet */
+void SymmetrySerial::setSendFeature(uint8_t feature) {
+  messageSend.feature = feature;
+}
+
+
+/* get the feature set type from the received packet */
+uint8_t SymmetrySerial::getReceiveFeatureSet() {
+  return (messageReceive.feature - (messageReceive.feature % 0x10));
+}
+
+/* get the feature type from the received packet */
+uint8_t SymmetrySerial::getReceiveFeature() {
+  return messageReceive.feature;
+}
+
+/* get the data length of the received packet */
+uint8_t SymmetrySerial::getReceiveLength() {
+  return messageReceive.length;
+}
+
+
+/* get the checksum of the received packet */
+uint8_t SymmetrySerial::getReceiveChecksum() {
+  return messageReceive.checksum;
+}
 
 /* get the value of the receive dataset at position */
 uint8_t SymmetrySerial::getReceiveDataAt(uint8_t position) {
@@ -274,13 +306,13 @@ void SymmetrySerial::setReceiveDataAt(uint8_t position, uint8_t value) {
 
 /* checksum calculation - send */
 uint8_t SymmetrySerial::getSendBufferChecksum() {
-    uint8_t outcome = messageSend.length + messageSend.feature;
-    if (messageSend.length > 0) {
-      for (uint8_t i =0; i < messageSend.length; i++) {
-        outcome += messageSend.dataBuffer[i];
-      }
+  uint8_t outcome = messageSend.length + messageSend.feature;
+  if (messageSend.length > 0) {
+    for (uint8_t i =0; i < messageSend.length; i++) {
+      outcome += messageSend.dataBuffer[i];
     }
-    return outcome;
+  }
+  return outcome;
 }
 
 /* get the value of the send dataset at position */
@@ -292,3 +324,43 @@ uint8_t SymmetrySerial::getSendDataAt(uint8_t position) {
 void SymmetrySerial::setSendDataAt(uint8_t position, uint8_t value) {
   messageSend.dataBuffer[position] = value;
 }
+
+/* Add data helpers for sendpacket */
+void SymmetrySerial::addByteToSend(uint8_t data) {
+  setSendDataAt(counterSend++, data & 0xFF);
+  messageSend.length = counterSend;
+}
+
+void SymmetrySerial::addWordToSend(uint16_t data) {
+  setSendDataAt(counterSend++, highByte(data));
+  setSendDataAt(counterSend++, lowByte(data));
+  messageSend.length = counterSend;
+}
+
+void SymmetrySerial::resetSendDataCounter() {
+  setSendDataCounterTo(0);
+}
+
+void SymmetrySerial::setSendDataCounterTo(uint8_t value) {
+  counterSend = value;
+}
+
+/* Get data from receive packet */
+uint8_t SymmetrySerial::getByteFromReceive() {
+  return getReceiveDataAt(counterReceive++);
+}
+
+uint16_t SymmetrySerial::getWordFromReceive() {
+  uint8_t msb = getReceiveDataAt(counterReceive++);
+  uint8_t lsb = getReceiveDataAt(counterReceive++);
+  return ( msb << 8 | lsb);
+}
+
+void SymmetrySerial::resetReceiveDataCounter() {
+  setReceiveDataCounterTo(0);
+}
+
+void SymmetrySerial::setReceiveDataCounterTo(uint8_t value) {
+  counterReceive = value;
+}
+
