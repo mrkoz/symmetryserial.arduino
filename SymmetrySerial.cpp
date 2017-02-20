@@ -114,7 +114,7 @@ void SymmetrySerial::poll() {
           break;
       }
 
-      if(receiveCount == messageReceive.length + SERIAL_MESSAGE_SIZE) {
+      if(receiveCount == messageReceive.length + SERIAL_MESSAGE_SIZE - 1) {
         // this was the last packet of data
         if(receiveChecksum == 0) {  // perform checksum and if
           sendStatusACK();
@@ -223,12 +223,12 @@ void SymmetrySerial::sendMessage() {
   messageSend.checksum = 256 - (getSendBufferChecksum() % 256);
 
   _port->write(0xFF);
-  _port->write(messageSend.length);
-  _port->write(messageSend.feature);
-  _port->write(messageSend.checksum);
+  _port->write(messageSend.length & 0xFF);
+  _port->write(messageSend.feature & 0xFF);
+  _port->write(messageSend.checksum & 0xFF);
 
   for (uint8_t i = 0; i < messageSend.length; i++) {
-    _port->write(messageSend.dataBuffer[i]);
+    _port->write(messageSend.dataBuffer[i] & 0xFF);
   }
 
   purgeMessageSend();
@@ -327,7 +327,7 @@ void SymmetrySerial::setSendDataAt(uint8_t position, uint8_t value) {
 
 /* Add data helpers for sendpacket */
 void SymmetrySerial::addByteToSend(uint8_t data) {
-  setSendDataAt(counterSend++, data);
+  setSendDataAt(counterSend++, data & 0xFF);
   messageSend.length = counterSend;
 }
 

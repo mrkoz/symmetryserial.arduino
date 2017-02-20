@@ -15,7 +15,7 @@
 #define SERIAL_MESSAGE_BUFFER_SIZE SERIAL_BUFFER_SIZE - SERIAL_MESSAGE_SIZE - 1 // takign into account the start bit
 #define S_SIZE_OR_STATUS 0
 #define S_FEATURE 1
-#define S_CHECKSUM 3
+#define S_CHECKSUM 2
 #define MSG_START 0xFF
 
 /* status commands for basic */
