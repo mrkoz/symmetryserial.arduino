@@ -62,13 +62,14 @@ class SymmetrySerial
     uint8_t counterReceive = 0;
 
     /***** Public functions *****/
-    /* Constructor with data and status callback */
+    /* Constructor */
     SymmetrySerial(HardwareSerial *port, int baudRate);
-    /* Constructor with heartbeat and data and status callback */
+    /* Constructor with heartbeat */
     SymmetrySerial(HardwareSerial *port, int baudRate, unsigned long heartBeat);
-
+    /* set callbacks */
     void setCallBacks(void (*callback)(void), void (*statusCallback)(uint8_t message));
-
+    
+    /***** Port connect/disconnect *****/
     /* Stop serial port connectivity */
     void connect();
     /* Stop serial port connectivity */
@@ -97,6 +98,16 @@ class SymmetrySerial
     void sendMessageSingle(uint8_t feature, uint8_t value);
     /* quick send for single feature trigger */
     void sendMessageSingle(uint8_t feature);
+    /* set the feature type for the send packet */
+    void setSendFeature(uint8_t feature);
+    /* get the feature set type from the received packet */
+    uint8_t getReceiveFeatureSet();
+    /* get the feature type from the received packet */
+    uint8_t getReceiveFeature();
+    /* get the data length of the received packet */
+    uint8_t getReceiveLength();
+    /* get the checksum of the received packet */
+    uint8_t getReceiveChecksum();
     /* get the value of the receive dataset at position */
     uint8_t getReceiveDataAt(uint8_t position);
     /* set the value of the receive dataset at position to value */

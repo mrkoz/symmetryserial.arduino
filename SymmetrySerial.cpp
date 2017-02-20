@@ -41,7 +41,6 @@ void SymmetrySerial::disconnect() {
 }
 
 /***** State and heartbeat timer functions *****/
-
 /* updates last message and last heartbeat on data received */
 void SymmetrySerial::dataReceived() {
   lastMessage = millis();
@@ -64,13 +63,12 @@ void SymmetrySerial::checkheartBeat() {
 
 
 /***** data and message methods *****/
-
 /* poll to see if there's new data and process while available */
 void SymmetrySerial::poll() {
   checkheartBeat();
   while (configured == true && _port->available() > 0) {
     dataReceived();
-    recChar = _port->read();
+    recChar = _port->read() & 0xFF;
     if(receiving == 0) {              // if the receiving is set to 0 then we're not currently receiving a message
       if(recChar == MSG_START) {       // check if the recChar is the start char
         receiving = 1;                // starting message
