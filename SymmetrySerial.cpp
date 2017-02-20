@@ -6,28 +6,27 @@
 #include "Arduino.h"
 #include "SymmetrySerial.h"
 
-/***** Constructors *****/
-
-/* Constructor with data and status callback */
-SymmetrySerial::SymmetrySerial(HardwareSerial *port, int baudRate){
+/***** Constructors and configuiration *****/
+/* Constructor */
+SymmetrySerial::SymmetrySerial(HardwareSerial *port, int baudRate) {
   _port = port;
   _baudRate = baudRate;
 }
 
-/* Constructor with heartbeat and data and status callback */
-SymmetrySerial::SymmetrySerial(HardwareSerial *port, int baudRate, unsigned long heartBeat){
+/* Constructor with heartbeat */
+SymmetrySerial::SymmetrySerial(HardwareSerial *port, int baudRate, unsigned long heartBeat) {
   _port = port;
   _baudRate = baudRate;
   _heartBeat = heartBeat;
 }
 
+/* set callbacks */
 void SymmetrySerial::setCallBacks(void (*callback)(void), void (*statusCallback)(uint8_t message)) {
   _messageCallback = callback;
   _statusCallback = statusCallback;
 }
 
 /***** Port connect/disconnect *****/
-
 /* Stop serial port connectivity */
 void SymmetrySerial::connect() {
     _port->begin(_baudRate);
@@ -270,6 +269,32 @@ uint8_t SymmetrySerial::getRecieveBufferChecksum() {
   }
   return outcome;
 }
+/* set the feature type for the send packet */
+void SymmetrySerial::setSendFeature(uint8_t feature) {
+  messageSend.feature = feature;
+}
+
+
+/* get the feature set type from the received packet */
+uint8_t SymmetrySerial::getReceiveFeatureSet() {
+  return (messageReceive.feature - (messageReceive.feature % 0x10));
+}
+
+/* get the feature type from the received packet */
+uint8_t SymmetrySerial::getReceiveFeature() {
+  return messageReceive.feature;
+}
+
+/* get the data length of the received packet */
+uint8_t SymmetrySerial::getReceiveLength() {
+  return messageReceive.length;
+}
+
+
+/* get the checksum of the received packet */
+uint8_t SymmetrySerial::getReceiveChecksum() {
+  return messageReceive.checksum;
+}
 
 /* get the value of the receive dataset at position */
 uint8_t SymmetrySerial::getReceiveDataAt(uint8_t position) {
@@ -328,7 +353,9 @@ uint8_t SymmetrySerial::getByteFromReceive() {
 }
 
 uint16_t SymmetrySerial::getWordFromReceive() {
-  return getReceiveDataAt(counterReceive++)  << 8 | getReceiveDataAt(counterReceive++);
+  uint8_t msb = getReceiveDataAt(counterReceive++);
+  uint8_t lsb = getReceiveDataAt(counterReceive++);
+  return ( msb << 8 | lsb);
 }
 
 void SymmetrySerial::resetReceiveDataCounter() {
