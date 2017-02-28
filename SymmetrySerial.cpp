@@ -227,6 +227,9 @@ void SymmetrySerial::sendMessage() {
   _port->write(messageSend.feature & 0xFF);
   _port->write(messageSend.checksum & 0xFF);
 
+
+  Serial.println(messageSend.length);
+
   for (uint8_t i = 0; i < messageSend.length; i++) {
     _port->write(messageSend.dataBuffer[i] & 0xFF);
   }
@@ -237,7 +240,7 @@ void SymmetrySerial::sendMessage() {
 /* quick send for single feature trigger and value */
 void SymmetrySerial::sendMessageSingle(uint8_t feature, uint8_t value) {
   purgeMessageSend();
-  messageSend.dataBuffer[0] = value;
+  addByteToSend(value);
   messageSend.feature = feature;
   sendMessage();
 }
