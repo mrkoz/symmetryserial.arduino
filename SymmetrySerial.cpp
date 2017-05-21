@@ -69,6 +69,7 @@ void SymmetrySerial::poll() {
   while (configured == true && _port->available() > 0) {
     dataReceived();
     recChar = _port->read() & 0xFF;
+    
     if(receiving == 0) {              // if the receiving is set to 0 then we're not currently receiving a message
       if(recChar == MSG_START) {       // check if the recChar is the start char
         receiving = 1;                // starting message
@@ -227,8 +228,6 @@ void SymmetrySerial::sendMessage() {
   _port->write(messageSend.feature & 0xFF);
   _port->write(messageSend.checksum & 0xFF);
 
-
-  Serial.println(messageSend.length);
 
   for (uint8_t i = 0; i < messageSend.length; i++) {
     _port->write(messageSend.dataBuffer[i] & 0xFF);
