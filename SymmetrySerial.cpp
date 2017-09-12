@@ -1,12 +1,12 @@
 /*
   SymmetrySerial.cpp - Library for SymmetrySimple code.
   Created by Adam Purdie, August 2, 2016.
-  Licence as per Licence.txt
+  License as per License.txt
 */
 #include "Arduino.h"
 #include "SymmetrySerial.h"
 
-/***** Constructors and configuiration *****/
+/***** Constructors and configuration *****/
 /* Constructor */
 SymmetrySerial::SymmetrySerial(HardwareSerial *port, int baudRate) {
   _port = port;
@@ -327,7 +327,7 @@ void SymmetrySerial::setSendDataAt(uint8_t position, uint8_t value) {
   messageSend.dataBuffer[position] = value;
 }
 
-/* Add data helpers for sendpacket */
+/* Add data helpers for send packet */
 void SymmetrySerial::addByteToSend(uint8_t data) {
   setSendDataAt(counterSend++, data & 0xFF);
   messageSend.length = counterSend;

@@ -122,7 +122,7 @@ class SymmetrySerial
     /* send buffer purge */
     void purgeMessageSend();
 
-    /* Add data helpers for sendpacket */
+    /* Add data helpers for send packet */
     void addByteToSend(uint8_t data);
     void addWordToSend(uint16_t data);
     void resetSendDataCounter();
