@@ -7,9 +7,7 @@
 #define SymmetrySerial_h
 
 /* Defines */
-
 #define TIMEOUT_SERIAL_BUFFER 1000
-//serial message = [command/size][option1][option2][...data...][check]
 #define SERIAL_BUFFER_SIZE 64 //Arduino serial length is 64
 #define SERIAL_MESSAGE_SIZE 3
 #define SERIAL_MESSAGE_BUFFER_SIZE SERIAL_BUFFER_SIZE - SERIAL_MESSAGE_SIZE - 1 // takign into account the start bit
@@ -17,6 +15,7 @@
 #define S_FEATURE 1
 #define S_CHECKSUM 2
 #define MSG_START 0xFF
+#define MESSAGE_DATA_BUFFER_BLANK 0xFF
 
 /* status commands for basic */
 #define HELO 0xFB
@@ -24,12 +23,20 @@
 #define NACK 0xFD
 #define FAIL 0xFE
 
-//TODO: make the send/receive buffers feature to be able to handle multiple messages in a queue
-//TODO: if we're doing the above we might as well add message numbers!? this is getting too hard.
-//TODO: make a separated i2c version that has a destination and SLAVE/MASTER preset?
+/* status message types */
+#define STATUS_DEBUG_ON 0xF0
+#define STATUS_DEBUG_OFF 0xF1
+#define STATUS_POWER_UP 0xF2
+#define STATUS_POWER_DOWN 0xF3
+#define STATUS_RESET_CPU 0xF4
+#define STATUS_RESET_COMMS 0xF5
+#define STATUS_ERASE_EEPROM 0xF6
+#define STATUS_RESET_TO_DEFAULTS 0xF7
+#define STATUS_AUX 0xF8
+#define STATUS_AUX_ONE 0xF9
+#define STATUS_AUX_TWO 0xFA
 
-#define MESSAGE_DATA_BUFFER_BLANK 0xFF
-
+//serial message = [command/size][option1][option2][...data...][check]
 /* Structs */
 typedef struct {
   uint8_t    length;
