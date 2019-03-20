@@ -3,7 +3,7 @@ Version 1.2
 
 ## Synopsis
 
-Symmetry serial is a basic communication structure that allows simple bi-direction communication and a bunch of useful helper methods to make it simpler. THe communication is as lightweight as possible to keep things a bit quick and makes use of only basic maths functions for error checking.
+Symmetry serial is a basic communication structure that allows simple bi-direction communication and a bunch of useful helper methods to make it simpler. The communication is as lightweight as possible to keep things a bit quick and makes use of only basic maths functions for error checking.
 
 ## Usage
 
@@ -16,8 +16,8 @@ Most tutorials around the place allow for very basic communication using strings
 Main goals:
 
 * multiple command types
-   * status command - short command that can be decided on
-   * variable length data packet
+  * status command - short command that can be decided on
+  * variable length data packet
 * detect and drop errors
 * basic disconnection detection
 
