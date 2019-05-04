@@ -8,18 +8,17 @@
 
 /***** Constructors and configuration *****/
 /* Constructor */
-SymmetrySerial::SymmetrySerial(HardwareSerial *port, int baudRate) {
+SymmetrySerial::SymmetrySerial(Stream *port, int baudRate) {
   _port = port;
   _baudRate = baudRate;
 }
 
 /* Constructor with heartbeat */
-SymmetrySerial::SymmetrySerial(HardwareSerial *port, int baudRate, unsigned long heartBeat) {
+SymmetrySerial::SymmetrySerial(Stream *port, int baudRate, unsigned long heartBeat) {
   _port = port;
   _baudRate = baudRate;
   _heartBeat = heartBeat;
 }
-
 /* set callbacks */
 void SymmetrySerial::setCallBacks(void (*callback)(void), void (*statusCallback)(uint8_t message)) {
   _messageCallback = callback;
@@ -29,15 +28,15 @@ void SymmetrySerial::setCallBacks(void (*callback)(void), void (*statusCallback)
 /***** Port connect/disconnect *****/
 /* Stop serial port connectivity */
 void SymmetrySerial::connect() {
-    _port->begin(_baudRate);
-    purgeMessageReceive();
-    configured = true;
+  _port->begin(_baudRate);
+  purgeMessageReceive();
+  configured = true;
 }
 
 /* Stop serial port connectivity */
 void SymmetrySerial::disconnect() {
-    _port->end();
-    configured = false;
+  _port->end();
+  configured = false;
 }
 
 /***** State and heartbeat timer functions *****/
