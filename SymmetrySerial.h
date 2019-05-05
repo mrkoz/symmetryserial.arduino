@@ -148,8 +148,8 @@ class SymmetrySerial
 
     bool is_alive();
 
-  private:
-    /***** Private Members *****/
+  protected:
+    /***** protected Members *****/
     bool hwSerial;
     Stream * _port;
 
@@ -167,7 +167,7 @@ class SymmetrySerial
     void (*_messageSendCallback)(void);
     void (*_messageStatusSendCallback)(uint8_t message);
 
-    /***** Private functions *****/
+    /***** protected functions *****/
     /* updates last message and last heartbeat on data received */
     void dataReceived();
     /* checks the heartbeat timeout and fires off a HELO if needed */
