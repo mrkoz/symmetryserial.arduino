@@ -5,16 +5,32 @@
 */
 #include "Arduino.h"
 #include "SymmetrySerial.h"
+#include <AltSoftSerial.h>
 
 /***** Constructors and configuration *****/
 /* Constructor */
-SymmetrySerial::SymmetrySerial(Stream *port, int baudRate) {
+SymmetrySerial::SymmetrySerial(HardwareSerial *port, int baudRate) {
+  hwSerial = true;
   _port = port;
   _baudRate = baudRate;
 }
 
 /* Constructor with heartbeat */
-SymmetrySerial::SymmetrySerial(Stream *port, int baudRate, unsigned long heartBeat) {
+SymmetrySerial::SymmetrySerial(HardwareSerial *port, int baudRate, unsigned long heartBeat) {
+  hwSerial = true;
+  _port = port;
+  _baudRate = baudRate;
+  _heartBeat = heartBeat;
+}
+SymmetrySerial::SymmetrySerial(AltSoftSerial *port, int baudRate) {
+  hwSerial = false;
+  _port = port;
+  _baudRate = baudRate;
+}
+
+/* Constructor with heartbeat */
+SymmetrySerial::SymmetrySerial(AltSoftSerial *port, int baudRate, unsigned long heartBeat) {
+  hwSerial = false;
   _port = port;
   _baudRate = baudRate;
   _heartBeat = heartBeat;
@@ -28,14 +44,22 @@ void SymmetrySerial::setCallBacks(void (*callback)(void), void (*statusCallback)
 /***** Port connect/disconnect *****/
 /* Stop serial port connectivity */
 void SymmetrySerial::connect() {
-  _port->begin(_baudRate);
+  if(hwSerial) {
+    static_cast<HardwareSerial*>(_port)->begin(_baudRate);
+  } else {
+    static_cast<AltSoftSerial*>(_port)->begin(_baudRate);
+  }
   purgeMessageReceive();
   configured = true;
 }
 
 /* Stop serial port connectivity */
 void SymmetrySerial::disconnect() {
-  _port->end();
+  if(hwSerial) {
+    static_cast<HardwareSerial*>(_port)->end();
+  } else {
+    static_cast<AltSoftSerial*>(_port)->end();
+  }
   configured = false;
 }
 
@@ -64,6 +88,8 @@ void SymmetrySerial::checkheartBeat() {
 /***** data and message methods *****/
 /* poll to see if there's new data and process while available */
 void SymmetrySerial::poll() {
+    _port->write(0xff);
+    _port->write(HELO);
   checkheartBeat();
   while (configured == true && _port->available() > 0) {
     dataReceived();

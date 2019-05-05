@@ -46,6 +46,7 @@ typedef struct {
 } serialMessage;
 
 #include "Arduino.h"
+#include <AltSoftSerial.h>
 
 class SymmetrySerial
 {
@@ -70,9 +71,13 @@ class SymmetrySerial
 
     /***** Public functions *****/
     /* Constructor */
-    SymmetrySerial(Stream *port, int baudRate);
+    SymmetrySerial(HardwareSerial *port, int baudRate);
     /* Constructor with heartbeat */
-    SymmetrySerial(Stream *port, int baudRate, unsigned long heartBeat);
+    SymmetrySerial(HardwareSerial *port, int baudRate, unsigned long heartBeat);
+    /* Constructor */
+    SymmetrySerial(AltSoftSerial *port, int baudRate);
+    /* Constructor with heartbeat */
+    SymmetrySerial(AltSoftSerial *port, int baudRate, unsigned long heartBeat);
     /* set callbacks */
     void setCallBacks(void (*callback)(void), void (*statusCallback)(uint8_t message));
     
@@ -145,7 +150,8 @@ class SymmetrySerial
 
   private:
     /***** Private Members *****/
-    HardwareSerial * _port;
+    bool hwSerial;
+    Stream * _port;
 
     unsigned long _baudRate;
     unsigned long _heartBeat;
