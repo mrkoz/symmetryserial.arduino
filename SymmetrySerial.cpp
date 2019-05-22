@@ -8,13 +8,13 @@
 
 /***** Constructors and configuration *****/
 /* Constructor */
-SymmetrySerial::SymmetrySerial(HardwareSerial *port, int baudRate) {
+SymmetrySerial::SymmetrySerial(Stream *port, int baudRate) {
   _port = port;
   _baudRate = baudRate;
 }
 
 /* Constructor with heartbeat */
-SymmetrySerial::SymmetrySerial(HardwareSerial *port, int baudRate, unsigned long heartBeat) {
+SymmetrySerial::SymmetrySerial(Stream *port, int baudRate, unsigned long heartBeat) {
   _port = port;
   _baudRate = baudRate;
   _heartBeat = heartBeat;
