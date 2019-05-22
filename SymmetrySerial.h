@@ -71,13 +71,9 @@ class SymmetrySerial
 
     /***** Public functions *****/
     /* Constructor */
-    SymmetrySerial(HardwareSerial *port, int baudRate);
+    SymmetrySerial(Stream *port, int baudRate);
     /* Constructor with heartbeat */
-    SymmetrySerial(HardwareSerial *port, int baudRate, unsigned long heartBeat);
-    /* Constructor */
-    SymmetrySerial(AltSoftSerial *port, int baudRate);
-    /* Constructor with heartbeat */
-    SymmetrySerial(AltSoftSerial *port, int baudRate, unsigned long heartBeat);
+    SymmetrySerial(Stream *port, int baudRate, unsigned long heartBeat);
     /* set callbacks */
     void setCallBacks(void (*callback)(void), void (*statusCallback)(uint8_t message));
     
