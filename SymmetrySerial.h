@@ -58,7 +58,7 @@ class SymmetrySerial
     uint16_t failedMessageCount = 0;
     uint16_t successMessageCount = 0;
 
-    bool debug = false;
+    bool debug = true;
     bool configured = true;
 
     unsigned long lastHeartbeat = 5000;
@@ -95,7 +95,7 @@ class SymmetrySerial
     /* react to status message */
     void statusMessageReceived(uint8_t message);
     /* send a status message */
-    void sendSatusMessage(uint8_t command);
+    void sendStatusMessage(uint8_t command);
     /* pre-canned status messages - HELO */
     void sendStatusHELO();
     /* pre-canned status messages - ACK */
@@ -108,6 +108,8 @@ class SymmetrySerial
     void sendMessage();
     /* quick send for single feature trigger and value */
     void sendMessageSingle(uint8_t feature, uint8_t value);
+    /* quick send for single feature trigger and value */
+    void sendMessageSingleWord(uint8_t feature, uint16_t data);
     /* quick send for single feature trigger */
     void sendMessageSingle(uint8_t feature);
     /* set the feature type for the send packet */

@@ -88,8 +88,6 @@ void SymmetrySerial::checkheartBeat() {
 /***** data and message methods *****/
 /* poll to see if there's new data and process while available */
 void SymmetrySerial::poll() {
-    _port->write(0xff);
-    _port->write(HELO);
   checkheartBeat();
   while (configured == true && _port->available() > 0) {
     dataReceived();
@@ -216,7 +214,7 @@ void SymmetrySerial::statusMessageReceived(uint8_t message) {
 }
 
 /* send a status message */
-void SymmetrySerial::sendSatusMessage(uint8_t command) {
+void SymmetrySerial::sendStatusMessage(uint8_t command) {
   if (!configured) return;
   _port->write(0xff);
   _port->write(command);
@@ -224,22 +222,22 @@ void SymmetrySerial::sendSatusMessage(uint8_t command) {
 
 /* pre-canned status messages - HELO */
 void SymmetrySerial::sendStatusHELO() {
-  sendSatusMessage(HELO); 
+  sendStatusMessage(HELO); 
 }
 
 /* pre-canned status messages - ACK */
 void SymmetrySerial::sendStatusACK() {
-  sendSatusMessage(ACK); 
+  sendStatusMessage(ACK); 
 }
 
 /* pre-canned status messages - NACK */
 void SymmetrySerial::sendStatusNACK() {
-  sendSatusMessage(NACK);
+  sendStatusMessage(NACK);
 }
 
 /* pre-canned status messages - FAIL */
 void SymmetrySerial::sendStatusFAIL() {
-  sendSatusMessage(FAIL);
+  sendStatusMessage(FAIL);
 }
 
 /* send a message */
@@ -265,6 +263,16 @@ void SymmetrySerial::sendMessage() {
 void SymmetrySerial::sendMessageSingle(uint8_t feature, uint8_t value) {
   purgeMessageSend();
   addByteToSend(value);
+  messageSend.feature = feature;
+  sendMessage();
+}
+
+/* quick send for single feature trigger and value */
+void SymmetrySerial::sendMessageSingleWord(uint8_t feature, uint16_t data) {
+  purgeMessageSend();
+  setSendDataAt(counterSend++, highByte(data) & 0xff);
+  setSendDataAt(counterSend++, lowByte(data) & 0xff);
+  messageSend.length = counterSend;
   messageSend.feature = feature;
   sendMessage();
 }
