@@ -36,6 +36,12 @@
 #define STATUS_AUX_ONE 0xF9
 #define STATUS_AUX_TWO 0xFA
 
+typedef enum {
+  HWPORT,
+  ALTPORT,
+  SSPORT
+} portType;
+
 //serial message = [command/size][option1][option2][...data...][check]
 /* Structs */
 typedef struct {
@@ -46,7 +52,12 @@ typedef struct {
 } serialMessage;
 
 #include "Arduino.h"
-#include <AltSoftSerial.h>
+#ifdef AltSoftSerial_h
+  #include <AltSoftSerial.h>
+#endif
+#ifdef SoftwareSerial_h
+#include <SoftwareSerial.h>
+#endif
 
 class SymmetrySerial
 {
@@ -70,10 +81,18 @@ class SymmetrySerial
     uint8_t counterReceive = 0;
 
     /***** Public functions *****/
-    /* Constructor */
-    SymmetrySerial(Stream *port, int baudRate);
-    /* Constructor with heartbeat */
-    SymmetrySerial(Stream *port, int baudRate, unsigned long heartBeat);
+    /* Constructors */
+    SymmetrySerial(HardwareSerial *port, int baudRate);
+    SymmetrySerial(HardwareSerial *port, int baudRate, unsigned long heartBeat);
+    #ifdef AltSoftSerial_h
+    SymmetrySerial(AltSoftSerial *port, int baudRate);
+    SymmetrySerial(AltSoftSerial *port, int baudRate, unsigned long heartBeat);
+    #endif
+
+    #ifdef SoftwareSerial_h
+    SymmetrySerial(SoftwareSerial *port, int baudRate);
+    SymmetrySerial(SoftwareSerial *port, int baudRate, unsigned long heartBeat);
+    #endif
     /* set callbacks */
     void setCallBacks(void (*callback)(void), void (*statusCallback)(uint8_t message));
     
@@ -150,6 +169,7 @@ class SymmetrySerial
     /***** protected Members *****/
     bool hwSerial;
     Stream * _port;
+    portType _portType = HWPORT;
 
     unsigned long _baudRate;
     unsigned long _heartBeat;

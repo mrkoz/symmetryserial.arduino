@@ -5,21 +5,58 @@
 */
 #include "Arduino.h"
 #include "SymmetrySerial.h"
-#include <AltSoftSerial.h>
+#ifdef AltSoftSerial_h
+  #include <AltSoftSerial.h>
+#endif
+#ifdef SoftwareSerial_h
+#include <SoftwareSerial.h>
+#endif
 
-/***** Constructors and configuration *****/
+/***** Constructors hardware serial *****/
 /* Constructor */
-SymmetrySerial::SymmetrySerial(Stream *port, int baudRate) {
+SymmetrySerial::SymmetrySerial(HardwareSerial *port, int baudRate) {
   _port = port;
   _baudRate = baudRate;
 }
 
 /* Constructor with heartbeat */
-SymmetrySerial::SymmetrySerial(Stream *port, int baudRate, unsigned long heartBeat) {
+SymmetrySerial::SymmetrySerial(HardwareSerial *port, int baudRate, unsigned long heartBeat) {
   _port = port;
   _baudRate = baudRate;
   _heartBeat = heartBeat;
 }
+
+#ifdef AltSoftSerial_h
+/***** Constructors alt software serial *****/
+/* Constructor */
+SymmetrySerial::SymmetrySerial(AltSoftSerial *port, int baudRate) {
+  _port = port;
+  _baudRate = baudRate;
+}
+
+/* Constructor with heartbeat */
+SymmetrySerial::SymmetrySerial(AltSoftSerial *port, int baudRate, unsigned long heartBeat) {
+  _port = port;
+  _baudRate = baudRate;
+  _heartBeat = heartBeat;
+}
+#endif
+
+#ifdef SoftwareSerial_h
+/***** Constructors software serial *****/
+/* Constructor */
+SymmetrySerial::SymmetrySerial(SoftwareSerial *port, int baudRate) {
+  _port = port;
+  _baudRate = baudRate;
+}
+
+/* Constructor with heartbeat */
+SymmetrySerial::SymmetrySerial(SoftwareSerial *port, int baudRate, unsigned long heartBeat) {
+  _port = port;
+  _baudRate = baudRate;
+  _heartBeat = heartBeat;
+}
+#endif
 
 /* set callbacks */
 void SymmetrySerial::setCallBacks(void (*callback)(void), void (*statusCallback)(uint8_t message)) {
@@ -30,26 +67,38 @@ void SymmetrySerial::setCallBacks(void (*callback)(void), void (*statusCallback)
 /***** Port connect/disconnect *****/
 /* Stop serial port connectivity */
 void SymmetrySerial::connect() {
-  if (typeid(_port).name() == "HardwareSerial") {
+  if (_portType == HWPORT) {
     static_cast<HardwareSerial*>(_port)->begin(_baudRate);
-  } else if (typeid(_port).name() == "AltSoftSerial") {
+  } 
+  #ifdef AltSoftSerial_h
+  else if (_portType == ALTPORT) {
     static_cast<AltSoftSerial*>(_port)->begin(_baudRate);
-  } else if (typeid(_port).name() == "SoftwareSerial") {
+  }
+  #endif 
+  #ifdef SoftwareSerial_h
+  else if (_portType == SSPORT) {
     static_cast<SoftwareSerial*>(_port)->begin(_baudRate);
   }
+  #endif
   purgeMessageReceive();
   configured = true;
 }
 
 /* Stop serial port connectivity */
 void SymmetrySerial::disconnect() {
-  if (typeid(_port).name() == "HardwareSerial") {
+  if (_portType == HWPORT) {
     static_cast<HardwareSerial*>(_port)->end();
-  } else if (typeid(_port).name() == "AltSoftSerial") {
+  } 
+  #ifdef AltSoftSerial_h
+  else if (_portType == ALTPORT) {
     static_cast<AltSoftSerial*>(_port)->end();
-  } else if (typeid(_port).name() == "SoftwareSerial") {
+  } 
+  #endif
+  #ifdef SoftwareSerial_h
+  else if (_portType == SSPORT) {
     static_cast<SoftwareSerial*>(_port)->end();
   }
+  #endif
   configured = false;
 }
 
